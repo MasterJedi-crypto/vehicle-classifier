@@ -1,0 +1,12 @@
+schema: "classroom50/repo-config/v1"
+classroom: "l5-adv-2026-jul"
+assignment: "l5-adv-mission-1"
+owner:
+  username: "MasterJedi-crypto"
+  id: 260400467
+  accepted_at: "2026-08-05T04:24:46Z"
+source:
+  owner: "Mission-Ready"
+  owner_id: 91437324
+  repo: "l5-adv-mission-1"
+  branch: "main"
