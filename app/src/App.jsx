@@ -73,11 +73,10 @@ function App() {
       <main className="main">
         <section className="hero">
           <p className="eyebrow">AI Vehicle Recognition Prototype</p>
-          <h2>Identify your vehicle from a photo</h2>
-          <p>
-            Upload an image of a vehicle and use Azure Computer Vision to
-            analyse what appears in the image.
-          </p>
+          {/* <h2>Identify your vehicle from a photo</h2> */}
+          {/* <p> */}
+           
+          {/* </p> */}
         </section>
 
         <section className="recognition-card">
