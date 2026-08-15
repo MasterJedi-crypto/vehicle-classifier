@@ -2,47 +2,57 @@ import express from 'express'
 import multer from 'multer'
 import dotenv from 'dotenv'
 import cors from 'cors'
+
 dotenv.config()
 
 const app = express()
-app.use(cors({
-  origin: 'http://localhost:5173',
-}))
-const upload = multer({ storage: multer.memoryStorage() })
-
 const PORT = 3001
+
+app.use(
+  cors({
+    origin: 'http://localhost:5173',
+  }),
+)
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+})
 
 app.post('/api/analyze', upload.single('image'), async (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ error: 'No image was uploaded.' })
-    }
-
-    const endpoint = process.env.AZURE_VISION_ENDPOINT
-    const key = process.env.AZURE_VISION_KEY
-
-    if (!endpoint || !key) {
-      return res.status(500).json({
-        error: 'Azure Vision credentials are missing.',
+      return res.status(400).json({
+        error: 'No image was uploaded.',
       })
     }
 
-    const cleanEndpoint = endpoint.replace(/\/$/, '')
+    const azureUrl = process.env.CUSTOM_VISION_ENDPOINT
+    const predictionKey = process.env.CUSTOM_VISION_PREDICTION_KEY
 
-    const azureUrl =
-      `${cleanEndpoint}/vision/v3.2/analyze` +
-      '?visualFeatures=Description,Tags,Objects,Categories'
+    if (!azureUrl || !predictionKey) {
+      return res.status(500).json({
+        error: 'Azure Custom Vision configuration is missing.',
+      })
+    }
 
     const azureResponse = await fetch(azureUrl, {
       method: 'POST',
       headers: {
-        'Ocp-Apim-Subscription-Key': key,
+        'Prediction-Key': predictionKey,
         'Content-Type': 'application/octet-stream',
       },
       body: req.file.buffer,
     })
 
-    const data = await azureResponse.json()
+    const responseText = await azureResponse.text()
+
+    let data
+
+    try {
+      data = JSON.parse(responseText)
+    } catch {
+      data = { message: responseText }
+    }
 
     if (!azureResponse.ok) {
       console.error('Azure error:', data)
@@ -53,11 +63,24 @@ app.post('/api/analyze', upload.single('image'), async (req, res) => {
       })
     }
 
-    res.json(data)
-  } catch (error) {
-    console.error(error)
+    if (!Array.isArray(data.predictions) || data.predictions.length === 0) {
+      return res.status(502).json({
+        error: 'Azure returned no vehicle predictions.',
+      })
+    }
 
-    res.status(500).json({
+    const topPrediction = data.predictions.reduce((best, current) =>
+      current.probability > best.probability ? current : best,
+    )
+
+    return res.json({
+      vehicleType: topPrediction.tagName,
+      confidence: topPrediction.probability,
+    })
+  } catch (error) {
+    console.error('Analysis error:', error)
+
+    return res.status(500).json({
       error: 'Something went wrong while analysing the image.',
     })
   }

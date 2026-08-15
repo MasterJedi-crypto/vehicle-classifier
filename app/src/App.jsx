@@ -52,15 +52,6 @@ function App() {
     }
   }
 
-  const description =
-    result?.description?.captions?.[0]?.text || 'No description returned.'
-
-  const confidence = result?.description?.captions?.[0]?.confidence
-
-  const tags =
-    result?.tags?.slice(0, 6).map((tag) => tag.name).join(', ') ||
-    'No tags returned.'
-
   return (
     <div className="app">
       <header className="header">
@@ -124,24 +115,15 @@ function App() {
             <p>Upload a vehicle image and select Analyse Vehicle.</p>
           )}
 
-          {result && (
-            <div className="result-content">
-              <p>
-                <strong>Description:</strong> {description}
-              </p>
-
-              {confidence !== undefined && (
-                <p>
-                  <strong>Confidence:</strong>{' '}
-                  {(confidence * 100).toFixed(1)}%
-                </p>
-              )}
-
-              <p>
-                <strong>Tags:</strong> {tags}
-              </p>
-            </div>
-          )}
+         {result && (
+           <div className="result-content">
+  <p><strong>Vehicle type:</strong> {result.vehicleType}</p>
+  <p>
+    <strong>Confidence:</strong>{' '}
+    {(result.confidence * 100).toFixed(1)}%
+  </p>
+</div>
+)}
         </section>
       </main>
     </div>
